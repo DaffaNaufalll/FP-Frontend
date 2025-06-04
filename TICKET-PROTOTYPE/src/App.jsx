@@ -13,28 +13,83 @@ import AdminReportsPage from './components/pages/admin/AdminReportsPage';
 import AdminSettingsPage from './components/pages/admin/AdminSettingsPage';
 import AdminDashboard from './components/pages/admin/AdminDashboard';
 import AdminTicketsPage from './components/pages/admin/AdminTicketsPage';
+import RequireAuth from './RequireAuth';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* User routes */}
+        {/* Public route */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<UserDashboard />} />
-        <Route path="/create-ticket" element={<CreateTicketPage />} />
-        <Route path="/my-details" element={<MyDetailsPage />} />
-        <Route path="/edit-details" element={<EditDetailsPage />} />
-        <Route path="/view-tickets" element={<ViewTicketsPage />} />
-        <Route path="/ticket/:id" element={<TicketDetailPage />} />
 
-        {/* Admin routes */}
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/ticket/:id" element={<AdminTicketDetailPage />} />
-        <Route path="/admin/users" element={<AdminUsersPage />} />
-        <Route path="/admin/agents" element={<AdminAgentsPage />} />
-        <Route path="/admin/reports" element={<AdminReportsPage />} />
-        <Route path="/admin/settings" element={<AdminSettingsPage />} />
-        <Route path="/admin/tickets" element={<AdminTicketsPage />} />
+        {/* Protected user routes */}
+        <Route path="/" element={
+          <RequireAuth>
+            <UserDashboard />
+          </RequireAuth>
+        } />
+        <Route path="/create-ticket" element={
+          <RequireAuth>
+            <CreateTicketPage />
+          </RequireAuth>
+        } />
+        <Route path="/my-details" element={
+          <RequireAuth>
+            <MyDetailsPage />
+          </RequireAuth>
+        } />
+        <Route path="/edit-details" element={
+          <RequireAuth>
+            <EditDetailsPage />
+          </RequireAuth>
+        } />
+        <Route path="/view-tickets" element={
+          <RequireAuth>
+            <ViewTicketsPage />
+          </RequireAuth>
+        } />
+        <Route path="/ticket/:id" element={
+          <RequireAuth>
+            <TicketDetailPage />
+          </RequireAuth>
+        } />
+
+        {/* Protected admin routes */}
+        <Route path="/admin" element={
+          <RequireAuth>
+            <AdminDashboard />
+          </RequireAuth>
+        } />
+        <Route path="/admin/ticket/:id" element={
+          <RequireAuth>
+            <AdminTicketDetailPage />
+          </RequireAuth>
+        } />
+        <Route path="/admin/users" element={
+          <RequireAuth>
+            <AdminUsersPage />
+          </RequireAuth>
+        } />
+        <Route path="/admin/agents" element={
+          <RequireAuth>
+            <AdminAgentsPage />
+          </RequireAuth>
+        } />
+        <Route path="/admin/reports" element={
+          <RequireAuth>
+            <AdminReportsPage />
+          </RequireAuth>
+        } />
+        <Route path="/admin/settings" element={
+          <RequireAuth>
+            <AdminSettingsPage />
+          </RequireAuth>
+        } />
+        <Route path="/admin/tickets" element={
+          <RequireAuth>
+            <AdminTicketsPage />
+          </RequireAuth>
+        } />
       </Routes>
     </Router>
   );
