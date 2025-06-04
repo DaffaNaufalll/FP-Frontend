@@ -4,17 +4,29 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Dummy login: accept any non-empty email/password
-    if (email && password) {
-      // In real app, call API and get token
-      localStorage.setItem("token", "dummy-token");
-      window.location.href = "/";
-    } else {
-      setError("Please enter email and password.");
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("https://backend-production-3b7e2.up.railway.app/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        localStorage.setItem("token", data.token);
+        window.location.href = "/";
+      } else {
+        setError(data.error || "Login failed.");
+      }
+    } catch (err) {
+      setError("Network error.");
     }
+    setLoading(false);
   };
 
   return (
@@ -48,8 +60,9 @@ export default function LoginPage() {
         <button
           type="submit"
           className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md font-semibold"
+          disabled={loading}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
