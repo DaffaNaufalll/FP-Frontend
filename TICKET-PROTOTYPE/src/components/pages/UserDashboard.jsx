@@ -35,10 +35,16 @@ export default function UserDashboard() {
   useEffect(() => {
     getTickets()
       .then(data => {
-        setTickets(Array.isArray(data) ? data : []);
+        if (Array.isArray(data)) {
+          setTickets(data);
+        } else {
+          console.error("API did not return an array:", data);
+          setTickets([]);
+        }
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Failed to fetch tickets:", err);
         setTickets([]);
         setLoading(false);
       });
