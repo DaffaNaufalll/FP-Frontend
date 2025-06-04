@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+const apiUrl = process.env.REACT_APP_API_URL || "https://fp-backends-production.up.railway.app";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,7 +13,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("https://backend-production-3b7e2.up.railway.app/api/login", {
+      const res = await fetch(`${apiUrl}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -21,7 +23,7 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token);
         window.location.href = "/";
       } else {
-        setError(data.error || "Login failed.");
+        setError(data.error || data.message || "Login failed.");
       }
     } catch (err) {
       setError("Network error.");
