@@ -35,10 +35,13 @@ export default function UserDashboard() {
   useEffect(() => {
     getTickets()
       .then(data => {
-        setTickets(data);
+        setTickets(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setTickets([]);
+        setLoading(false);
+      });
   }, []);
 
   // Filter tickets based on search query
