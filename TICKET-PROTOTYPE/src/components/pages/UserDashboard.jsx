@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Bell, Plus, List } from "lucide-react";
+import { getTickets } from "../../api";
 
 export default function UserDashboard() {
   // Chatbot state
@@ -27,18 +28,22 @@ export default function UserDashboard() {
   // Search state for dashboard search bar
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Example tickets data (replace with real data or fetch)
-  const tickets = [
-    { id: 1, subject: "Shoe size question", status: "Pending" },
-    { id: 2, subject: "Order #345098", status: "On Hold" },
-    { id: 3, subject: "Feedback", status: "Completed" },
-    { id: 4, subject: "Refund request", status: "Pending" },
-    { id: 5, subject: "Shipping delay", status: "On Hold" },
-  ];
+  // Tickets state (fetched from backend)
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getTickets()
+      .then(data => {
+        setTickets(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   // Filter tickets based on search query
   const filteredTickets = tickets.filter(ticket =>
-    ticket.subject.toLowerCase().includes(searchQuery.toLowerCase())
+    ticket.subject?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const navigate = useNavigate();
@@ -217,27 +222,29 @@ export default function UserDashboard() {
             </div>
             {/* Show filtered results */}
             {searchQuery && (
-  <div className="mt-4 bg-white rounded shadow p-4 text-left">
-    <h2 className="font-semibold mb-2 text-green-700">Search Results:</h2>
-    {filteredTickets.length === 0 ? (
-      <div className="text-gray-500">No matching tickets found.</div>
-    ) : (
-      <ul>
-        {filteredTickets.map(ticket => (
-          <li key={ticket.id} className="mb-2">
-            <Link
-              to={`/ticket/${ticket.id}`}
-              className="font-medium hover:underline"
-            >
-              {ticket.subject}
-            </Link>
-            <span className="ml-2 text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">{ticket.status}</span>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-)}
+              <div className="mt-4 bg-white rounded shadow p-4 text-left">
+                <h2 className="font-semibold mb-2 text-green-700">Search Results:</h2>
+                {loading ? (
+                  <div className="text-gray-500">Loading...</div>
+                ) : filteredTickets.length === 0 ? (
+                  <div className="text-gray-500">No matching tickets found.</div>
+                ) : (
+                  <ul>
+                    {filteredTickets.map(ticket => (
+                      <li key={ticket.id} className="mb-2">
+                        <Link
+                          to={`/ticket/${ticket.id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {ticket.subject}
+                        </Link>
+                        <span className="ml-2 text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">{ticket.status}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Action Button */}
