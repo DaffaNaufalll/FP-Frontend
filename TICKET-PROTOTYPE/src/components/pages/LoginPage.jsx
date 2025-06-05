@@ -1,74 +1,88 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "../ui/button";
 
-function LoginPage() {
+export default function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
+    setError("");
+    setLoading(true);
+
     try {
-      const res = await fetch("https://fp-backends-production.up.railway.app/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        "https://fp-backends-production.up.railway.app/api/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
       const data = await res.json();
+
       if (res.ok) {
+        // Save login info in localStorage
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
+        localStorage.setItem("email", data.email); // <-- This is important!
+        // Optionally save name/avatar if returned by API
+        if (data.name) localStorage.setItem("name", data.name);
+        if (data.avatar) localStorage.setItem("avatar", data.avatar);
 
-        // Redirect based on role
-        if (data.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
+        setLoading(false);
+        navigate("/"); // Redirect to dashboard or tickets
       } else {
-        setMessage(data.error || "Login failed");
+        setLoading(false);
+        setError(data.error || "Login failed");
       }
     } catch (err) {
-      setMessage("Network error");
+      setLoading(false);
+      setError("Network error");
     }
   };
 
   return (
-    <div style={{ maxWidth: 300, margin: "60px auto", padding: 20, border: "1px solid #ccc", borderRadius: 8 }}>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <div>
-          <label>Email:</label>
-          <input
-            style={{ width: "100%" }}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoFocus
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            style={{ width: "100%" }}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button style={{ width: "100%", marginTop: 12 }} type="submit">
-          Login
-        </button>
-      </form>
-      {message && (
-        <div style={{ marginTop: 10, color: "red" }}>{message}</div>
-      )}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 via-green-200 to-white">
+      <div className="bg-white rounded-2xl shadow-2xl border border-green-200 p-10 w-full max-w-sm">
+        <h1 className="text-3xl font-bold text-green-700 mb-6 text-center">Login</h1>
+        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label className="block mb-1 text-green-700 font-semibold">Email</label>
+            <input
+              type="email"
+              className="w-full px-4 py-2 border rounded-md"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              autoComplete="username"
+            />
+          </div>
+          <div>
+            <label className="block mb-1 text-green-700 font-semibold">Password</label>
+            <input
+              type="password"
+              className="w-full px-4 py-2 border rounded-md"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          <Button
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md"
+            disabled={loading}
+            type="submit"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
-
-export default LoginPage;
