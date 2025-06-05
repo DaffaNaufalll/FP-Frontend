@@ -3,6 +3,9 @@ import { Button } from "../ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import { List } from "lucide-react";
 
+// Get API URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function CreateTicketPage() {
   const navigate = useNavigate();
   const [subject, setSubject] = useState("");
@@ -35,7 +38,7 @@ export default function CreateTicketPage() {
 
     try {
       const res = await fetch(
-        "https://fp-backends-production.up.railway.app/api/tickets",
+        `${API_URL}/api/tickets`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
