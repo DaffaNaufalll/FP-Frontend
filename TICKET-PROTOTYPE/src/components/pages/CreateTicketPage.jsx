@@ -3,8 +3,8 @@ import { Button } from "../ui/button";
 import { useNavigate, Link } from "react-router-dom";
 import { List } from "lucide-react";
 
-// Get API URL from environment variable
-const API_URL = import.meta.env.VITE_API_URL;
+// For CRA, use process.env.REACT_APP_API_URL
+const API_URL = process.env.REACT_APP_API_URL;
 
 export default function CreateTicketPage() {
   const navigate = useNavigate();
