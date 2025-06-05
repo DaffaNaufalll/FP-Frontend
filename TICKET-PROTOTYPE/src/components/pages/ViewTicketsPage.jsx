@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 
@@ -9,44 +9,6 @@ const filters = [
   "Pending",
   "Solved",
   "Closed",
-];
-
-// Example: Only user's own tickets
-const tickets = [
-  {
-    id: 1,
-    requester: "Lisa Goodman",
-    email: "lisagoodman@mail.com",
-    subject: "Shoe size question",
-    description: "I need help with shoe sizing.",
-    status: "Open",
-    priority: "High",
-    lastMessage: "4 seconds ago",
-    createdAt: "2025-06-01",
-  },
-  {
-    id: 2,
-    requester: "Lisa Goodman",
-    email: "lisagoodman@mail.com",
-    subject: "Order #345098",
-    description: "Question about my recent order.",
-    status: "Pending",
-    priority: "Medium",
-    lastMessage: "45 seconds ago",
-    createdAt: "2025-05-29",
-  },
-  {
-    id: 3,
-    requester: "Lisa Goodman",
-    email: "lisagoodman@mail.com",
-    subject: "Happy feedback 😊",
-    description: "Just wanted to say thanks!",
-    status: "Solved",
-    priority: "Low",
-    lastMessage: "2 hours ago",
-    createdAt: "2025-05-20",
-  },
-  // Add more tickets as needed...
 ];
 
 function statusColor(status) {
@@ -82,6 +44,27 @@ export default function ViewTicketsPage() {
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [tickets, setTickets] = useState([]); // <-- Use dynamic tickets!
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Get logged-in user's email
+    const email = localStorage.getItem("email"); // Or however you store it
+    if (!email) {
+      setLoading(false);
+      return;
+    }
+    fetch(`https://fp-backends-production.up.railway.app/api/my-tickets?email=${encodeURIComponent(email)}`)
+      .then(res => res.json())
+      .then(data => {
+        setTickets(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setLoading(false);
+        alert("Failed to load tickets");
+      });
+  }, []);
 
   // Filter tickets by status, search, and date range
   const filteredTickets = tickets.filter((t) => {
@@ -90,7 +73,7 @@ export default function ViewTicketsPage() {
     const matchesSearch =
       t.subject.toLowerCase().includes(search.toLowerCase()) ||
       (t.description && t.description.toLowerCase().includes(search.toLowerCase()));
-    const ticketDate = t.createdAt;
+    const ticketDate = t.createdAt?.slice(0, 10); // format: "YYYY-MM-DD"
     const afterFrom = !dateFrom || ticketDate >= dateFrom;
     const beforeTo = !dateTo || ticketDate <= dateTo;
     return matchesStatus && matchesSearch && afterFrom && beforeTo;
@@ -165,45 +148,53 @@ export default function ViewTicketsPage() {
           </Link>
         </div>
         <div className="overflow-x-auto bg-white rounded-xl shadow border">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="px-4 py-3"></th>
-                <th className="px-4 py-3 text-left">Subject</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">Priority</th>
-                <th className="px-4 py-3 text-left">Last Message</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTickets.map((ticket) => (
-                <tr key={ticket.id} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <input type="checkbox" />
-                  </td>
-                  <td className="px-4 py-3">
-                    <Link
-                      to={`/ticket/${ticket.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {ticket.subject}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor(ticket.status)}`}>
-                      {ticket.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${priorityColor(ticket.priority)}`}>
-                      {ticket.priority}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">{ticket.lastMessage}</td>
+          {loading ? (
+            <div className="p-6 text-center text-gray-500">Loading...</div>
+          ) : filteredTickets.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">No tickets found.</div>
+          ) : (
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="px-4 py-3"></th>
+                  <th className="px-4 py-3 text-left">Subject</th>
+                  <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Priority</th>
+                  <th className="px-4 py-3 text-left">Created At</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredTickets.map((ticket) => (
+                  <tr key={ticket._id || ticket.id} className="border-b hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <input type="checkbox" />
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/ticket/${ticket._id || ticket.id}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {ticket.subject || ticket.title}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor(ticket.status)}`}>
+                        {ticket.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${priorityColor(ticket.priority)}`}>
+                        {ticket.priority}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString() : ""}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </main>
     </div>
