@@ -29,13 +29,19 @@ export default function LoginPage() {
         // Save login info in localStorage
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
-        localStorage.setItem("email", data.email); // <-- This is important!
+        localStorage.setItem("email", data.email);
         // Optionally save name/avatar if returned by API
         if (data.name) localStorage.setItem("name", data.name);
         if (data.avatar) localStorage.setItem("avatar", data.avatar);
 
         setLoading(false);
-        navigate("/"); // Redirect to dashboard or tickets
+
+        // Redirect by role!
+        if (data.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
         setLoading(false);
         setError(data.error || "Login failed");
