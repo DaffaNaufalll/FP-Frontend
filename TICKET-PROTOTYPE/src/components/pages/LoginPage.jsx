@@ -1,72 +1,74 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const apiUrl = process.env.REACT_APP_API_URL || "https://fp-backends-production.up.railway.app";
-
-export default function LoginPage() {
+function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setMessage("");
     try {
-      const res = await fetch(`${apiUrl}/api/login`, {
+      const res = await fetch("https://fp-backends-production.up.railway.app/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (res.ok && data.token) {
+      if (res.ok) {
         localStorage.setItem("token", data.token);
-        window.location.href = "/";
+        localStorage.setItem("role", data.role);
+
+        // Redirect based on role
+        if (data.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
-        setError(data.error || data.message || "Login failed.");
+        setMessage(data.error || "Login failed");
       }
     } catch (err) {
-      setError("Network error.");
+      setMessage("Network error");
     }
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 via-green-200 to-white">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white rounded-xl shadow-xl border p-8 w-full max-w-sm space-y-6"
-      >
-        <h1 className="text-2xl font-bold text-green-700 mb-2 text-center">Login</h1>
-        {error && <div className="text-red-500 text-sm">{error}</div>}
+    <div style={{ maxWidth: 300, margin: "60px auto", padding: 20, border: "1px solid #ccc", borderRadius: 8 }}>
+      <h2>Login</h2>
+      <form onSubmit={handleLogin}>
         <div>
-          <label className="block mb-1 text-green-700 font-semibold">Email</label>
+          <label>Email:</label>
           <input
+            style={{ width: "100%" }}
             type="email"
-            className="w-full px-4 py-2 border rounded-md"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
+            autoFocus
           />
         </div>
         <div>
-          <label className="block mb-1 text-green-700 font-semibold">Password</label>
+          <label>Password:</label>
           <input
+            style={{ width: "100%" }}
             type="password"
-            className="w-full px-4 py-2 border rounded-md"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
-        <button
-          type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md font-semibold"
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Login"}
+        <button style={{ width: "100%", marginTop: 12 }} type="submit">
+          Login
         </button>
       </form>
+      {message && (
+        <div style={{ marginTop: 10, color: "red" }}>{message}</div>
+      )}
     </div>
   );
 }
+
+export default LoginPage;
